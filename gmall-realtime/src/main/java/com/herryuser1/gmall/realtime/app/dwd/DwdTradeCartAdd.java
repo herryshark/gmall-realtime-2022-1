@@ -1,6 +1,7 @@
 package com.herryuser1.gmall.realtime.app.dwd;
 
 import com.herryuser1.gmall.realtime.util.MyKafkaUtil;
+import com.herryuser1.gmall.realtime.util.MysqlUtil;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -53,20 +54,23 @@ public class DwdTradeCartAdd {
                 "from topic_db " +
                 "where `database` = 'gmall' " +
                 "and `table` = 'cart_info' " +
-                "and (`type` = 'insert' " +
+                "and `type` = 'insert' " +//探寻为什么此处要加括号
                 "or (`type` = 'update'  " +
                 "    and  " +
                 "    `old`['sku_num'] is not null  " +
                 "    and  " +
-                "    cast(`data`['sku_num'] as int) > cast(`old`['sku_num'] as int)))");
+                "    cast(`data`['sku_num'] as int) > cast(`old`['sku_num'] as int))");
 
         //将架构表转化为流并进行打印
         tableEnv.toAppendStream(cartAddTable, Row.class)
                 .print(">>>>>>");
 
         // 4 读取MySQL的base_dic表作为Lookup表 维表退化
+        tableEnv.executeSql(MysqlUtil.getBaseDicLookUpDDL());
 
         // 5 关联两张表
+        tableEnv.sqlQuery(""
+                +"");
 
         // 6 用FlinkSQL 使用DDL方式，创建加购事实表
 
